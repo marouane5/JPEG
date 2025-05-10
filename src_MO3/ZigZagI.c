@@ -5,13 +5,13 @@
 
 
 /* Fonction ZigZagI pour le cas d'une liste contenant 64 élements */
-uint8_t** ZigZagI(uint8_t* L){
+int16_t** ZigZagI(int16_t* L){
     /* On initialise la matrice résultante M*/
     
-    uint8_t** M = malloc(8*sizeof(uint8_t*));
+    int16_t** M = malloc(8*sizeof(int16_t*));
     for (int i = 0; i < 8; i++){
 
-        M[i] = malloc(8*sizeof(uint8_t));
+        M[i] = malloc(8*sizeof(int16_t));
 
     } 
     
@@ -50,20 +50,27 @@ uint8_t** ZigZagI(uint8_t* L){
 
 
 /* TEST ZigZagI*/
-int main(void){
-    uint8_t* L = malloc(64*sizeof(uint8_t));
+// int main(void){
 
-    for (int i = 0; i<64; i++ ){
-        L[i] = i;
-    } 
+//     int16_t matrice[64] = {
+//         124, 0, -6, -333, 0, -284, 0, -293,
+//         0, -202, 128, 0, -117, 0, 0, 0,
+//         106, 0, -96, 0, -90, -138, 0, 284,
+//         0, 69, 0, -20, 0, -131, 0, 25,
+//         0, 19, 0, 221, 0, 26, 0, 255,
+//         0, 154, 0, 0, 4, 0, 125, 0,
+//         -88, 0, -167, 0, 20, 0, 0, -481,
+//         0, -71, 0, 244, 0, 0, -196, 0
+//     };
 
-    uint8_t** M = ZigZagI(L);
-    for (int i = 0; i<8; i++){
-        for (int j = 0; j<8; j++){
-            printf("l'élement de la %ueme ligne et %ueme colonne est %u\n", i+1, j+1, M[i][j]);
-        }
-    }
+//     int16_t** M = ZigZagI(matrice);
+//     for (int i = 0; i<8; i++){
+//         for (int j = 0; j<8; j++){
+//             printf("l'élement de la %deme ligne et %deme colonne est %d\n", i+1, j+1, M[i][j]);
+//         }
+//     }
+//     return 0;
 
 
 
-}
+// }
