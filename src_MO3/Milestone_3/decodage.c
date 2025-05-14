@@ -5,6 +5,17 @@
 #include <stdbool.h>
 #include <string.h>
 #include "entete_JPEG_2.c"
+#define MAX_HUFF_LEN 16      /* per JPEG spec */
+
+int get_next_bit(FILE *f)               /* returns '0', '1' or EOF */
+{
+    int c;
+    do {
+        c = fgetc(f);
+        if (c == EOF) return EOF;
+    } while (c != '0' && c != '1');     /* skip \n, spaces, … */
+    return c;
+}
 
 int magn_indice_to_coeff(int m, unsigned int idx) {
     if (m == 0)
@@ -26,48 +37,91 @@ int magn_indice_to_coeff(int m, unsigned int idx) {
     }
 }
 
-void extract_mcu_block(const char* filename){
+// ngad sturcture bach nsayb dakchi b tari9a mgada
+
+#include <stdint.h>
+
+typedef struct {
+    uint8_t id;        /* component identifier (1=Y,2=Cb,3=Cr) */
+    uint8_t h_samp;    /* horizontal sampling factor H  (1–4)     */
+    uint8_t v_samp;    /* vertical   sampling factor V  (1–4)     */
+    uint8_t qt_idx;    /* quant-table index (0–3)                 */
+    uint8_t dc_idx;    /* Huffman DC table index (0–3)            */
+    uint8_t ac_idx;    /* Huffman AC table index (0–3)            */
+} ComponentInfo;
+
+
+
+void extract_mcu_block(char* filename){
     /* Génère un fichier contenant uniquement le contenu de tout les blocs de l'image JPEG */
-    FILE* file = fopen(filename,"r");
+    FILE* file = fopen(filename,"rb");
     FILE* new_file = fopen("mcu_hex.txt","w");
-    
+    uint16_t** resultats = size_picture(filename);
+    uint16_t N = *(resultats[2]);
+    uint16_t* composantes = resultats[1];
+    uint16_t* qt_id =  resultats[3];
+    int16_t** quant_tables = extract_quant_table(filename);
+
+    ComponentInfo comp[4] = {0};
+    for (uint8_t i = 0; i < N; ++i) {
+        comp[i].id      = i+1;
+        comp[i].v_samp  = composantes[2*i];
+        comp[i].h_samp  = composantes[2*i+1];
+        comp[i].qt_idx  = qt_id[i]; 
+        comp[i].dc_idx  = 0; 
+        comp[i].ac_idx  = 0;
+    }
+
+    uint8_t comp_count = 0;
     int curr_b;
+
+
     while ((curr_b = fgetc(file)) != EOF){
         if (curr_b == 0xFF){
             curr_b = fgetc(file);
             if (curr_b == 0xDA){
-                uint8_t taille_fort = fgetc(file);
-                uint8_t taille_faible = fgetc(file);
-                uint16_t taille = taille_faible + pow(16,2)*taille_fort;
+                uint16_t taille = (fgetc(file) <<8) + fgetc(file);
                 /* taille -2 pour compenser les 2 octets de taille*/
-                for (int _=0; _<taille-2; _++){
-                    fgetc(file);
+                uint8_t nbr_compo = fgetc(file);
+                for (int i=0; i<nbr_compo; i++){
+                    comp[i].id = fgetc(file);  
+                    uint8_t ID = comp[i].id;
+                    for (uint8_t j = 0; j < N; ++j) {
+                        if (comp[j].id == ID) {
+                            uint8_t hv = fgetc(file);
+                            comp[j].dc_idx = hv >> 4;
+                            comp[j].ac_idx = hv & 0x0F;
+                            break;
+                        }
+                    
+                    }
+
+                    comp[i].qt_idx = qt_id[i];
+            
                 }
+                fgetc(file); fgetc(file); fgetc(file);
                 /* tant qu'on est pas encore arrive 
                 a la fin de l'image */
-                
-                
-                /*
-                A REVOIR
-                while((curr_b=fgetc(file))!=0xFF){
-                    fprintf(new_file,"%02X ",curr_b);
-                }
-                */
 
 
                 /* AMELIORATION: TRAITEMENT CAS BYTE STUFFING */
-                bool state = true;
-                while (state){
-                    if ((curr_b = fgetc(file))!= 0xFF){
-                        fprintf(new_file,"%02X ", curr_b);
+                curr_b = fgetc(file);
+                while (true){
+                    uint8_t prec = curr_b;
+                    curr_b= fgetc(file);
+                    if (prec == 0xFF){
+                        if (curr_b == 0x00){
+                            fprintf(new_file, "FF ");
+                            curr_b = fgetc(file);
+                        }
+                        else{
+                            break;
+                        }
                     }
-                    else if((curr_b = fgetc(file))== 0x00){
-                        fprintf(new_file, "FF ");
-
+                    else {
+                        fprintf(new_file,"%02X ", prec);
                     }
-                    else{
-                        state = false;
-                    }
+                    
                 }
                 
                 fprintf(new_file,"\n");
@@ -80,7 +134,7 @@ void extract_mcu_block(const char* filename){
 
 }
 
-void hex_to_bin(const char *filename)
+void hex_to_bin(char *filename)
 {   
     extract_mcu_block(filename);
     FILE *in  = fopen("mcu_hex.txt", "r");
@@ -132,7 +186,13 @@ int16_t** decode_mcu_block(table_de_huffman table_dc,
         bool code_found = false;
         int curr_b;
 
-        while ((curr_b = fgetc(file)) != EOF) {
+        while ((curr_b = get_next_bit(file)) != EOF) {
+            if (idx == MAX_HUFF_LEN) {
+                fprintf(stderr,
+                    "Error: Huffman DC code longer than %d bits – bad JPEG data\n",
+                    MAX_HUFF_LEN);          /* clean-up and leave the function */
+                goto abort_file;
+            }
             int b = curr_b - '0';
             seq_cour[idx] = curr_b;
             idx++;
@@ -155,7 +215,7 @@ int16_t** decode_mcu_block(table_de_huffman table_dc,
                     magnitude = huff_dc[i].symbole;
                     indice = 0;
                     for (int j = 0; j < magnitude; j++) {
-                        b = fgetc(file) - '0';
+                        b = get_next_bit(file) - '0';
                         indice = (indice << 1) | b;
                     }
                     int16_t dc_diff = magn_indice_to_coeff(magnitude, indice);
@@ -167,6 +227,14 @@ int16_t** decode_mcu_block(table_de_huffman table_dc,
                 }
             }
             if (code_found) break;
+
+            if (idx >= MAX_HUFF_LEN/2 && !code_found) {
+                // Garder les derniers bits et décaler
+                for (int i = 1; i < idx; i++) {
+                    seq_cour[i-1] = seq_cour[i];
+                }
+                idx--;
+            }
         }
         
         // --- Décodage AC ---
@@ -175,7 +243,13 @@ int16_t** decode_mcu_block(table_de_huffman table_dc,
         memset(seq_cour, 0, sizeof(seq_cour));
         code_found = false;
 
-        while (compt < 64 && (curr_b = fgetc(file)) != EOF) {
+        while (compt < 64 && (curr_b = get_next_bit(file)) != EOF) {
+            if (idx == MAX_HUFF_LEN) {
+            fprintf(stderr,
+                "Error: Huffman AC code longer than %d bits – bad JPEG data\n",
+                MAX_HUFF_LEN);
+            goto abort_file;
+        }
             int b = curr_b - '0';
             seq_cour[idx] = curr_b;
             idx++;
@@ -204,7 +278,7 @@ int16_t** decode_mcu_block(table_de_huffman table_dc,
                     indice = 0;
 
                     for (int j = 0; j < magnitude; j++) {
-                        b = fgetc(file) - '0';
+                        b = get_next_bit(file) - '0';
                         indice = (indice << 1) | b;
                     }
 
@@ -220,12 +294,31 @@ int16_t** decode_mcu_block(table_de_huffman table_dc,
                     break;
                 }
             }
+            if (!code_found && idx >= MAX_HUFF_LEN/2) {
+                // Technique de décalage pour essayer de récupérer
+                for (int i = 1; i < idx; i++) {
+                    seq_cour[i-1] = seq_cour[i];
+                }
+                idx--;
+            }
         }
     }
 
+    
+
+
     fclose(file);
     return mcu_blocks;
+
+
+    abort_file:
+        fclose(file);
+        for (int i = 0; i < nombre_blocks; ++i) 
+            free(mcu_blocks[i]);
+        free(mcu_blocks);
+        return NULL;
 }
+
 
 
 // int main(int argc, char **argv){
