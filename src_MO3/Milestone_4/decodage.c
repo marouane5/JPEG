@@ -561,8 +561,8 @@ int main(int argc, char **argv) {
     
     // on remplit les structures ComponentInfo
     for (uint8_t i = 0; i < N; i++) {
-        comp[i].id = i + 1;            // ID (1=Y, 2=Cb, 3=Cr)
-        comp[i].h_samp = 1;            // (on suppose 1 pour simplifier)
+        comp[i].id = i + 1;            // id (1=y, 2=cb, 3=cr)
+        comp[i].h_samp = 1;            // (on suppose 1 pour simplifier)  apres on peux just les remplires par composantes[2*i+1/2*i]
         comp[i].v_samp = 1;          
         comp[i].qt_idx = qt_id[i];    
     }
