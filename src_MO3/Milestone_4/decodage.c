@@ -4,7 +4,7 @@
 #include <math.h>
 #include <stdbool.h>
 #include <string.h>
-#include "entete_JPEG_2.c"
+#include "entete_JPEG_3.c"
 #define MAX_HUFF_LEN 16      /* per JPEG spec */
 
 int get_next_bit(FILE *f)               /* returns '0', '1' or EOF */
@@ -16,6 +16,7 @@ int get_next_bit(FILE *f)               /* returns '0', '1' or EOF */
     } while (c != '0' && c != '1');     
     return c;
 }
+
 
 int magn_indice_to_coeff(int m, unsigned int idx) {
     if (m == 0)
@@ -456,7 +457,7 @@ decode_ac:
                     return;
                 }
 
-                uint8_t coeff_zero        = symbol >> 4;   
+                uint8_t coeff_zero  = symbol >> 4;   
                 uint8_t magnitude  = symbol & 0x0F; 
 
                 uint16_t indice = 0;
@@ -511,6 +512,7 @@ int16_t*** decode_mcu_blocks_444(
 
     for (int m = 0; m < nb_blocs; ++m) {
 
+
         //Y
         decode_one_block(file,
                          components[0][m],
@@ -518,19 +520,22 @@ int16_t*** decode_mcu_blocks_444(
                          tables_dc[comp[0].dc_idx],
                          tables_ac[comp[0].ac_idx]);
 
-        //Cb
-        decode_one_block(file,
-                         components[1][m],
-                         &prev_dc[1],
-                         tables_dc[comp[1].dc_idx],
-                         tables_ac[comp[1].ac_idx]);
+        if (nb_comp == 3){
+            //Cb
+            decode_one_block(file,
+                            components[1][m],
+                            &prev_dc[1],
+                            tables_dc[comp[1].dc_idx],
+                            tables_ac[comp[1].ac_idx]);
 
-        //Cr
-        decode_one_block(file,
-                         components[2][m],
-                         &prev_dc[2],
-                         tables_dc[comp[2].dc_idx],
-                         tables_ac[comp[2].ac_idx]);
+            //Cr
+            decode_one_block(file,
+                            components[2][m],
+                            &prev_dc[2],
+                            tables_dc[comp[2].dc_idx],
+                            tables_ac[comp[2].ac_idx]);
+
+        }
     }
 
     fclose(file);
@@ -543,100 +548,126 @@ int16_t*** decode_mcu_blocks_444(
 
 
 
-int main(int argc, char **argv) {
-    if (argc < 2) {
-        fprintf(stderr, "Usage: %s <jpeg_file>\n", argv[0]);
-        return 1;
-    }
+// int main(int argc, char **argv) {
+//     if (argc < 2) {
+//         fprintf(stderr, "Usage: %s <jpeg_file>\n", argv[0]);
+//         return 1;
+//     }
     
 
-    uint16_t** resultats = size_picture(argv[1]);
-    uint16_t* taille = resultats[0];
-    uint16_t N = *(resultats[2]); 
-    uint16_t* composantes = resultats[1];
-    uint16_t* qt_id = resultats[3];
+//     uint16_t** resultats = size_picture(argv[1]);
+//     uint16_t* taille = resultats[0];
+//     uint16_t N = *(resultats[2]); 
+//     uint16_t* composantes = resultats[1];
+//     uint16_t* qt_id = resultats[3];
+    
+//     /* AJOUTE MO3*/
+//     uint16_t h_reel = taille[0];
+//     uint16_t l_reel = taille[1];
+
+//     uint16_t* taille_reel = malloc(2*sizeof(uint16_t));
+//     taille_reel[0] = h_reel;
+//     taille_reel[1] = l_reel;
+
+//     if (taille[1]%8 != 0 && taille[0]%8 != 0){
+//         taille[1] = 8*((l_reel/8) +1);
+//         taille[0] = 8*((h_reel/8) +1);
+//     }
+    
+//     else if (taille[1]%8 !=0){
+//         taille[1] = 8*((l_reel/8) +1);
+        
+//     }
+//     else if (taille[0]%8 !=0){
+//         taille[0] = 8*((h_reel/8) +1);
+//     }
+//     else{
+//         printf("Pas besoin de troncature!\n");
+//     }
+
+//     ComponentInfo comp[3] = {0};  // Maximum 3 composantes (Y, Cb, Cr)
+    
+//     // on remplit les structures ComponentInfo
+//     for (uint8_t i = 0; i < N; i++) {
+//         comp[i].id = i + 1;            // id (1=y, 2=cb, 3=cr)
+//         comp[i].h_samp = 1;            // (on suppose 1 pour simplifier)  apres on peux just les remplires par composantes[2*i+1/2*i]
+//         comp[i].v_samp = 1;          
+//         comp[i].qt_idx = qt_id[i];    
+//     }
+    
+//     // extraction des tables de Huffman
+//     table_de_huffman** tables = arbre_huffman_V2(argv[1]);
     
 
-    ComponentInfo comp[3] = {0};  // Maximum 3 composantes (Y, Cb, Cr)
-    
-    // on remplit les structures ComponentInfo
-    for (uint8_t i = 0; i < N; i++) {
-        comp[i].id = i + 1;            // id (1=y, 2=cb, 3=cr)
-        comp[i].h_samp = 1;            // (on suppose 1 pour simplifier)  apres on peux just les remplires par composantes[2*i+1/2*i]
-        comp[i].v_samp = 1;          
-        comp[i].qt_idx = qt_id[i];    
-    }
-    
-    // extraction des tables de Huffman
-    table_de_huffman** tables = arbre_huffman_V2(argv[1]);
-    
-
-    table_de_huffman tables_dc[2] = {tables[0][0], tables[0][1]};  // Tables DC
-    table_de_huffman tables_ac[2] = {tables[1][0], tables[1][1]};  // Tables AC
+//     table_de_huffman tables_dc[2] = {tables[0][0], tables[0][1]};  // Tables DC
+//     table_de_huffman tables_ac[2] = {tables[1][0], tables[1][1]};  // Tables AC
     
   
-    comp[0].dc_idx = 0;  // Y utilise la table DC 0
-    comp[0].ac_idx = 0;  // Y utilise la table AC 0
-    comp[1].dc_idx = 1;  // Cb utilise la table DC 1
-    comp[1].ac_idx = 1;  // Cb utilise la table AC 1
-    comp[2].dc_idx = 1;  // Cr utilise la table DC 1
-    comp[2].ac_idx = 1;  // Cr utilise la table AC 1
+//     comp[0].dc_idx = 0;  // Y utilise la table DC 0
+//     comp[0].ac_idx = 0;  // Y utilise la table AC 0
+//     comp[1].dc_idx = 1;  // Cb utilise la table DC 1
+//     comp[1].ac_idx = 1;  // Cb utilise la table AC 1
+//     comp[2].dc_idx = 1;  // Cr utilise la table DC 1
+//     comp[2].ac_idx = 1;  // Cr utilise la table AC 1
     
-    // decodage des MCU pour obtenir les composantes Y, Cb, Cr
-    int16_t*** components = decode_mcu_blocks_444(tables_dc, tables_ac, argv[1], taille, comp, N);
+//     // decodage des MCU pour obtenir les composantes Y, Cb, Cr
+//     int16_t*** components = decode_mcu_blocks_444(tables_dc, tables_ac, argv[1], taille, comp, N);
     
-    if (components == NULL) {
-        fprintf(stderr, "Erreur lors du décodage des MCU\n");
-        return 1;
-    }
+//     if (components == NULL) {
+//         fprintf(stderr, "Erreur lors du décodage des MCU\n");
+//         return 1;
+//     }
     
-    // affichage des résultats pour vérification
-    printf("Composantes de l'image décodées :\n");
+//     // affichage des résultats pour vérification
+//     printf("Composantes de l'image décodées :\n");
     
-    // Calculer le nombre de blocs par composante
-    int width_in_blocks = (taille[0] + 7) / 8;
-    int height_in_blocks = (taille[1] + 7) / 8;
-    int total_blocks = width_in_blocks * height_in_blocks;
+//     // Calculer le nombre de blocs par composante
+//     int width_in_blocks = (taille[0] + 7) / 8;
+//     int height_in_blocks = (taille[1] + 7) / 8;
+//     int total_blocks = width_in_blocks * height_in_blocks;
     
-    // Pour chaque composante
-    for (uint8_t c = 0; c < N; c++) {
-        const char* comp_name;
-        switch (c) {
-            case 0: comp_name = "Y"; break;
-            case 1: comp_name = "Cb"; break;
-            case 2: comp_name = "Cr"; break;
-            default: comp_name = "je ne sai pas c'est quoi cette couleur de merde"; break;
-        }
+//     // Pour chaque composante
+//     for (uint8_t c = 0; c < N; c++) {
+//         const char* comp_name;
+//         switch (c) {
+//             case 0: comp_name = "Y"; break;
+//             case 1: comp_name = "Cb"; break;
+//             case 2: comp_name = "Cr"; break;
+//             default: comp_name = "je ne sai pas c'est quoi cette couleur de merde"; break;
+//         }
         
-        printf("Composante %s :\n", comp_name);
+//         printf("Composante %s :\n", comp_name);
         
-        // afficher les 5 prem blocks
-        int blocks_to_show = (total_blocks < 5) ? total_blocks : 5;
-        for (int b = 0; b < blocks_to_show; b++) {
-            printf("  Bloc %d :\n", b);
-            for (int i = 0; i < 8; i++) {
-                printf("    ");
-                for (int j = 0; j < 8; j++) {
-                    int idx = i * 8 + j;
-                    printf("%4d ", components[c][b][idx]);
-                }
-                printf("\n");
-            }
-        }
-    }
+//         // afficher les 5 prem blocks
+//         int blocks_to_show = total_blocks;
+//         for (int b = 0; b < blocks_to_show; b++) {
+//             printf("  Bloc %d :\n", b);
+//             for (int i = 0; i < 8; i++) {
+//                 printf("    ");
+//                 for (int j = 0; j < 8; j++) {
+//                     int idx = i * 8 + j;
+//                     printf("%4d ", components[c][b][idx]);
+//                 }
+//                 printf("\n");
+//             }
+//         }
+//     }
     
-    // lib de la mémoire
-    for (uint8_t c = 0; c < N; c++) {
-        for (int j = 0; j < total_blocks; j++) {
-            free(components[c][j]);
-        }
-        free(components[c]);
-    }
-    free(components);
+//     // lib de la mémoire
+//     for (uint8_t c = 0; c < N; c++) {
+//         for (int j = 0; j < total_blocks; j++) {
+//             free(components[c][j]);
+//         }
+//         free(components[c]);
+//     }
+//     free(components);
     
     
-    return 0;
-}
+//     return 0;
+// }
+
+
+
 // int main(int argc, char **argv){
 //     uint16_t** resultats = size_picture(argv[1]);
 //     uint16_t* taille = resultats[0];
