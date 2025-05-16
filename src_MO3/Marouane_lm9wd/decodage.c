@@ -5,6 +5,8 @@
 #include <stdbool.h>
 #include <string.h>
 #include "entete_JPEG_2.c"
+
+
 #define MAX_HUFF_LEN 16      /* per JPEG spec */
 
 int get_next_bit(FILE *f)               /* returns '0', '1' or EOF */
@@ -158,240 +160,17 @@ void hex_to_bin(char *filename)
     fclose(out);
 }
 
-// int16_t*** decode_mcu_block(table_de_huffman* tables_dc, 
-//     table_de_huffman* tables_ac, char* filename, uint16_t* taille , ComponentInfo* comp, uint8_t nb_comp) {
-    
-    
-
-//     int width_in_blocks = (taille[0]+7 ) / 8;  // Ceiling division by 8
-//     int height_in_blocks = (taille[1] +7) / 8;
-
-//     int nombre_blocks = width_in_blocks * height_in_blocks;
-
-
-//     int16_t*** components = malloc(nb_comp * sizeof(int16_t**));
-//     for (uint8_t c = 0; c < nb_comp; c++) {
-//         int blocks_per_comp = nombre_blocks;
-//         components[c] = malloc(blocks_per_comp * sizeof(int16_t*));
-//         for (int j = 0; j < blocks_per_comp; j++) {
-//             components[c][j] = malloc(64 * sizeof(int16_t));
-//             // Initialize to zero
-//             memset(components[c][j], 0, 64 * sizeof(int16_t));
-//         }
-//     }
-
-    
-//     // table_de_huffman table_dc = tables_dc[0];
-//     // table_de_huffman table_ac = tables_ac[0];
-
-//     hex_to_bin(filename);
-//     // int nombre_blocks = (int) (taille[0]*taille[1])/64.0;
-//     // int16_t** mcu_blocks = malloc(nombre_blocks*sizeof(int16_t*));
-//     // for (int j = 0; j < nombre_blocks; j++){
-//     //     mcu_blocks[j] = malloc(64 * sizeof(int16_t));
-
-//     // }
-//     FILE* file = fopen("mcu_bin.txt", "r");
-//     if (!file) {
-//         printf("tk3k3ti");
-//         for (uint8_t c = 0; c < nb_comp; c++) {
-//             int blocks_per_comp = nombre_blocks;
-//             for (int j = 0; j < blocks_per_comp; j++) {
-//                 free(components[c][j]);
-//             }
-//             free(components[c]);
-//         }
-//         free(components);
-//         return NULL;
-//     }
-//     /* val precedant de DC pour chaque compo */
-//     int16_t* prev_dc = calloc(nb_comp, sizeof(int16_t));
-
-//     for (uint8_t c = 0; c < nb_comp; c++) {
-//         /* Get the Huffman tables for this component */
-//         table_de_huffman table_dc = tables_dc[comp[c].dc_idx];
-//         table_de_huffman table_ac = tables_ac[comp[c].ac_idx];
-        
-//         int len_dc = table_dc.len;
-//         huffman_code* huff_dc = table_dc.huff_tab;
-//         int len_ac = table_ac.len;
-//         huffman_code* huff_ac = table_ac.huff_tab;
-
-//     // // Récupération des infos
-//     // int len_dc = table_dc.len;
-//     // huffman_code* huff_dc = table_dc.huff_tab;
-//     // int len_ac = table_ac.len;
-//     // huffman_code* huff_ac = table_ac.huff_tab;
-
-//     // int16_t prev_dc = 0;
-
-//         for (int p = 0; p < nombre_blocks; p++ ){
-            
-//             char seq_cour[17] = {0};
-//             uint8_t idx = 0;
-//             uint8_t magnitude;
-//             uint16_t indice;
-//             bool code_found = false;
-//             int curr_b;
-
-//             while ((curr_b = get_next_bit(file)) != EOF) {
-//                 if (idx == MAX_HUFF_LEN) {
-//                     fprintf(stderr,
-//                         "Error: Huffman DC code longer than %d bits – bad JPEG data\n",
-//                         MAX_HUFF_LEN);          /* clean-up and leave the function */
-//                     goto abort_file;
-//                 }
-//                 int b = curr_b - '0';
-//                 seq_cour[idx] = curr_b;
-//                 idx++;
-
-//                 for (int i = 0; i < len_dc; i++) {
-//                     uint8_t len = huff_dc[i].longueur;
-//                     /* si la taille de la sequence courante n'est pas egale
-//                     a celle du code de huff, on passe a l'iteration suivante,
-//                     car on est sur que ca correpond pas a un code*/
-//                     if (idx != len) continue;
-
-//                     /*on tronque le code de huffman courant*/
-//                     char code_tmp[17];
-//                     for (int j = 0; j < len; j++) {
-//                         code_tmp[j] = huff_dc[i].code[15 - (len - 1 - j)];
-//                     }
-//                     code_tmp[len] = '\0';
-
-//                     if (strncmp(seq_cour, code_tmp, len) == 0) {
-//                         magnitude = huff_dc[i].symbole;
-//                         indice = 0;
-//                         for (int j = 0; j < magnitude; j++) {
-//                             b = get_next_bit(file) - '0';
-//                             indice = (indice << 1) | b;
-//                         }
-//                         int16_t dc_diff = magn_indice_to_coeff(magnitude, indice);
-//                         prev_dc[c] += dc_diff;             /* DC absolu courant   */
-//                         components[c][p][0] = prev_dc[c];  
-                        
-//                         code_found = true;
-//                         break;
-//                     }
-//                 }
-//                 if (code_found) break;
-
-//                 if (idx >= MAX_HUFF_LEN/2 && !code_found) {
-//                     // Garder les derniers bits et décaler
-//                     for (int i = 1; i < idx; i++) {
-//                         seq_cour[i-1] = seq_cour[i];
-//                     }
-//                     idx--;
-//                 }
-//             }
-            
-//             // --- Décodage AC ---
-//             int compt = 1;
-//             idx = 0;
-//             memset(seq_cour, 0, sizeof(seq_cour));
-//             code_found = false;
-
-//             while (compt < 64 && (curr_b = get_next_bit(file)) != EOF) {
-//                 if (idx == MAX_HUFF_LEN) {
-//                 fprintf(stderr,
-//                     "Error: Huffman AC code longer than %d bits – bad JPEG data\n",
-//                     MAX_HUFF_LEN);
-//                 goto abort_file;
-//             }
-//                 int b = curr_b - '0';
-//                 seq_cour[idx] = curr_b;
-//                 idx++;
-//                 for (int i = 0; i < len_ac; i++) {
-//                     uint8_t len = huff_ac[i].longueur;
-//                     if (idx != len) continue;
-
-//                     char code_tmp[17];
-//                     for (int j = 0; j < len; j++) {
-//                         code_tmp[j] = huff_ac[i].code[15 - (len - 1 - j)];
-//                     }
-//                     code_tmp[len] = '\0';
-
-//                     if (strncmp(seq_cour, code_tmp, len) == 0) {
-//                         // Vérifier si c'est EOB
-//                         if (huff_ac[i].symbole == 0x00) {
-//                             while (compt < 64){ 
-//                                 components[c][p][compt] = 0;
-//                                 compt++;
-//                             }
-//                             break;
-//                         }
-
-//                         uint8_t coeff_zero = (huff_ac[i].symbole >> 4) & 0x0F;
-//                         magnitude = huff_ac[i].symbole & 0x0F;
-//                         indice = 0;
-
-//                         for (int j = 0; j < magnitude; j++) {
-//                             b = get_next_bit(file) - '0';
-//                             indice = (indice << 1) | b;
-//                         }
-
-//                         for (int j = 0; j < coeff_zero && compt < 64; j++) {
-//                             components[c][p][compt++] = 0;
-//                         }
-//                         components[c][p][compt] = magn_indice_to_coeff(magnitude, indice);
-//                         compt++;
-//                         /* on reinitialise seq_cour a 0 pour 
-//                         construire le code suivant*/
-//                         idx = 0;
-//                         memset(seq_cour, 0, sizeof(seq_cour));
-//                         break;
-//                     }
-//                 }
-//                 if (code_found) {
-//                             code_found = false;
-//                             continue;
-//                         }
-//                 if (idx >= MAX_HUFF_LEN/2) {
-//                     // Technique de décalage pour essayer de récupérer
-//                     for (int i = 1; i < idx; i++) {
-//                         seq_cour[i-1] = seq_cour[i];
-//                     }
-//                     idx--;
-//                 }
-//             }
-//             while (compt < 64) {
-//                         components[c][p][compt++] = 0;
-//                     }
-
-//         }
-//     }
-
-
-    
-//     free(prev_dc);
-//     fclose(file);
-//     return components;
-
-
-// abort_file:
-//     if (file) fclose(file);
-//     free(prev_dc);
-//     for (uint8_t c = 0; c < nb_comp; c++) {
-//         int blocks_per_comp = nombre_blocks;
-//         for (int j = 0; j < blocks_per_comp; j++) {
-//             free(components[c][j]);
-//         }
-//         free(components[c]);
-//     }
-//     free(components);
-//     return NULL;
-// }
 
 
 
 
 
-static void decode_one_block(
-        FILE *bitstream,          //flux  binaire genere 
-        int16_t coef[64],         // tableau destination 8×8               
+void decode_one_block(
+        FILE *bitstream,          //flux  binaire genere
+        int16_t coef[64],         // tableau destination 8×8             
         int16_t *prev_dc,         // valeur DC précédente de la composante
         table_de_huffman dc_tab,  // table Huffman DC
-        table_de_huffman ac_tab)  // table Huffman AC 
+        table_de_huffman ac_tab)  // table Huffman AC
 {
 
     memset(coef, 0, 64 * sizeof(int16_t));
@@ -482,6 +261,26 @@ decode_ac:
     }
 }
 
+uint8_t init_component_info(const char *jpeg_path, ComponentInfo comp[3])
+{
+    /* 1)  Récupérer les métadonnées de l’image -------------------- */
+    uint16_t **infos      = size_picture((char *)jpeg_path);
+    uint16_t  N           = *infos[2];        /* nombre de composantes */
+    uint16_t *composantes =  infos[1];        /* tableau [V1,H1,V2,H2…] */
+    uint16_t *qt_id       =  infos[3];        /* index des tables Q     */
+
+    /* 2)  Remplir comp[] ------------------------------------------ */
+    for (uint8_t i = 0; i < N && i < 3; ++i) {
+        comp[i].id      = i + 1;                     /* 1 = Y, 2 = Cb, 3 = Cr */
+        comp[i].h_samp  = composantes[2*i + 1];      /* H_i du SOF           */
+        comp[i].v_samp  = composantes[2*i];          /* V_i du SOF           */
+        comp[i].qt_idx  = qt_id[i];                  /* table de quantif     */
+        comp[i].dc_idx  = 0;                         /* les valeurs réelles  */
+        comp[i].ac_idx  = 0;                         /* seront fixées après  */
+    }
+    return (uint8_t)N;
+}
+
 
 int16_t*** decode_mcu_blocks_444(
         table_de_huffman *tables_dc, table_de_huffman *tables_ac,
@@ -490,14 +289,20 @@ int16_t*** decode_mcu_blocks_444(
         ComponentInfo *comp,
         uint8_t nb_comp)
 {
-    int nb_blocs = ((taille[0] ) / 8) * ((taille[1] ) / 8);
+    
 
 
-    uint8_t H = 1;
-    uint8_t V = 1;
+    uint8_t H_Y = comp[0].h_samp;
+    uint8_t V_Y = comp[0].v_samp;
+
+
+    int mcu_w = (taille[0] + 8*H_Y - 1) / (8*H_Y);
+    int mcu_h = (taille[1] + 8*V_Y - 1) / (8*V_Y);
+    int total_mcu = mcu_w * mcu_h;
 
     int16_t ***components = malloc(nb_comp * sizeof *components);
     for (uint8_t c = 0; c < nb_comp; ++c) {
+        int nb_blocs = total_mcu * comp[c].h_samp * comp[c].v_samp;
         components[c] = malloc(nb_blocs * sizeof **components);
         for (int b = 0; b < nb_blocs; ++b)
             components[c][b] = calloc(64, sizeof ***components);
@@ -513,33 +318,30 @@ int16_t*** decode_mcu_blocks_444(
 
 
 
-    for (int m = 0; m < nb_blocs; ++m) {
+    for (int my = 0; my < mcu_h; ++my) {
+        for (int mx = 0; mx < mcu_w; ++mx) {
+            for (uint8_t c = 0; c < nb_comp; ++c) {
+                for (uint8_t v = 0; v < comp[c].v_samp; ++v) {
+                    for (uint8_t h = 0; h < comp[c].h_samp; ++h) {
 
-        //Y
-        decode_one_block(file,
-                         components[0][m],
-                         &prev_dc[0],
-                         tables_dc[comp[0].dc_idx],
-                         tables_ac[comp[0].ac_idx]);
+                        int bloc =
+                            (my * comp[c].v_samp + v) * mcu_w * comp[c].h_samp +
+                            (mx * comp[c].h_samp + h);
 
-        //Cb
-        decode_one_block(file,
-                         components[1][m],
-                         &prev_dc[1],
-                         tables_dc[comp[1].dc_idx],
-                         tables_ac[comp[1].ac_idx]);
-
-        //Cr
-        decode_one_block(file,
-                         components[2][m],
-                         &prev_dc[2],
-                         tables_dc[comp[2].dc_idx],
-                         tables_ac[comp[2].ac_idx]);
+                        decode_one_block(file,
+                                         components[c][bloc],
+                                         &prev_dc[c],
+                                         tables_dc[comp[c].dc_idx],
+                                         tables_ac[comp[c].ac_idx]);
+                    }
+                }
+            }
+        }
     }
-
     fclose(file);
     return components;
 }
+
 
 
 
@@ -552,14 +354,37 @@ int main(int argc, char **argv) {
         fprintf(stderr, "Usage: %s <jpeg_file>\n", argv[0]);
         return 1;
     }
-    
+
 
     uint16_t** resultats = size_picture(argv[1]);
     uint16_t* taille = resultats[0];
     uint16_t N = *(resultats[2]); 
     uint16_t* composantes = resultats[1];
     uint16_t* qt_id = resultats[3];
+
+
+    uint16_t h_reel = taille[0];
+    uint16_t l_reel = taille[1];
+
+    uint16_t* taille_reel = malloc(2*sizeof(uint16_t));
+    taille_reel[0] = h_reel;
+    taille_reel[1] = l_reel;
+
+    if (taille[1]%8 != 0 && taille[0]%8 != 0){
+        taille[1] = 8*((l_reel/8) +1);
+        taille[0] = 8*((h_reel/8) +1);
+    }
     
+    else if (taille[1]%8 !=0){
+        taille[1] = 8*((l_reel/8) +1);
+        
+    }
+    else if (taille[0]%8 !=0){
+        taille[0] = 8*((h_reel/8) +1);
+    }
+    else{
+        printf("Pas besoin de troncature!\n");
+    }
 
     ComponentInfo comp[3] = {0};  // Maximum 3 composantes (Y, Cb, Cr)
     
@@ -615,7 +440,8 @@ int main(int argc, char **argv) {
         printf("Composante %s :\n", comp_name);
         
         // afficher les 5 prem blocks
-        int blocks_to_show = (total_blocks < 5) ? total_blocks : 5;
+        //int blocks_to_show = (total_blocks < 5) ? total_blocks : 10;
+        int blocks_to_show = total_blocks;
         for (int b = 0; b < blocks_to_show; b++) {
             printf("  Bloc %d :\n", b);
             for (int i = 0; i < 8; i++) {
@@ -641,3 +467,5 @@ int main(int argc, char **argv) {
     
     return 0;
 }
+
+
