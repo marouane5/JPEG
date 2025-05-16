@@ -115,10 +115,12 @@ void extract_mcu_block(char* filename){
                         if (curr_b == 0x00){
                             fprintf(new_file, "FF ");
                             curr_b = fgetc(file);
-                        }
-                        else{
+                        } else if (curr_b >= 0xD0 && curr_b <= 0xD7){
+                            break;
+                        } else{
                             break;
                         }
+                        
                     }
                     else {
                         fprintf(new_file,"%02X ", prec);
@@ -135,6 +137,14 @@ void extract_mcu_block(char* filename){
     fclose(new_file);
 
 }
+
+
+
+
+
+
+
+
 
 void hex_to_bin(char *filename)
 {   
@@ -263,13 +273,13 @@ decode_ac:
 
 uint8_t init_component_info(const char *jpeg_path, ComponentInfo comp[3])
 {
-    /* 1)  Récupérer les métadonnées de l’image -------------------- */
+  
     uint16_t **infos      = size_picture((char *)jpeg_path);
     uint16_t  N           = *infos[2];        /* nombre de composantes */
     uint16_t *composantes =  infos[1];        /* tableau [V1,H1,V2,H2…] */
     uint16_t *qt_id       =  infos[3];        /* index des tables Q     */
 
-    /* 2)  Remplir comp[] ------------------------------------------ */
+
     for (uint8_t i = 0; i < N && i < 3; ++i) {
         comp[i].id      = i + 1;                     /* 1 = Y, 2 = Cb, 3 = Cr */
         comp[i].h_samp  = composantes[2*i + 1];      /* H_i du SOF           */
@@ -423,9 +433,11 @@ int main(int argc, char **argv) {
     printf("Composantes de l'image décodées :\n");
     
     // Calculer le nombre de blocs par composante
-    int width_in_blocks = (taille[0] + 7) / 8;
-    int height_in_blocks = (taille[1] + 7) / 8;
-    int total_blocks = width_in_blocks * height_in_blocks;
+  
+
+    int mcu_w = (taille[0] + 8 * comp[0].h_samp - 1) / (8 * comp[0].h_samp);
+    int mcu_h = (taille[1] + 8 * comp[0].v_samp - 1) / (8 * comp[0].v_samp);
+    int total_mcu = mcu_w * mcu_h;
     
     // Pour chaque composante
     for (uint8_t c = 0; c < N; c++) {
@@ -441,7 +453,7 @@ int main(int argc, char **argv) {
         
         // afficher les 5 prem blocks
         //int blocks_to_show = (total_blocks < 5) ? total_blocks : 10;
-        int blocks_to_show = total_blocks;
+        int blocks_to_show = total_mcu * comp[c].h_samp * comp[c].v_samp;
         for (int b = 0; b < blocks_to_show; b++) {
             printf("  Bloc %d :\n", b);
             for (int i = 0; i < 8; i++) {
@@ -457,12 +469,16 @@ int main(int argc, char **argv) {
     
     // lib de la mémoire
     for (uint8_t c = 0; c < N; c++) {
-        for (int j = 0; j < total_blocks; j++) {
+        // Calculer correctement le nombre de blocs pour chaque composante
+        int blocks_per_component = total_mcu * comp[c].h_samp * comp[c].v_samp;
+        
+        for (int j = 0; j < blocks_per_component; j++) {
             free(components[c][j]);
         }
         free(components[c]);
     }
     free(components);
+    free(taille_reel);
     
     
     return 0;
