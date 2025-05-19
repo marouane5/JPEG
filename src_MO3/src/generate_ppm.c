@@ -7,16 +7,32 @@
 
 void generate_image(uint16_t* taille, uint16_t* dim_reel , uint8_t**** mcu_blocks, uint16_t N){
     /* génére le fichier pgm ou ppm à partir des mcu caculées*/
-    FILE* file;
-    if (N==1){
-        file = fopen("image_grise.pgm","w");
-        fprintf(file,"P5\n");
+
+    char output_filename[256];
+    size_t len = strlen(jpeg_path);
+
+    // Identifier l'extension
+    int ext_len = 0;
+    if (len >= 5 && strcmp(jpeg_path + len - 5, ".jpeg") == 0) {
+        ext_len = 5;
+    } else if (len >= 4 && strcmp(jpeg_path + len - 4, ".jpg") == 0) {
+        ext_len = 4;
+    } else {
+        fprintf(stderr, "Erreur : extension inconnue\n");
+        return;
     }
-    else{
-        file = fopen("image_couleur.ppm","w");
-        fprintf(file,"P6\n");
-    
-    }
+
+    // Copier le nom de base (sans l'extension)
+    strncpy(output_filename, jpeg_path, len - ext_len);
+    output_filename[len - ext_len] = '\0';
+
+    char* extension;
+    if (N==1) extension = ".pgm";
+    if (N==3) extension = ".ppm";
+
+    strcat(output_filename, extension);
+    FILE* file = fopen(output_filename, "w");
+
     uint16_t h = dim_reel[0];
     uint16_t w = dim_reel[1];
 
