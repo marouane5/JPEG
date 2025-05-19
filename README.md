@@ -39,7 +39,7 @@ Cela génèrera les fichiers exécutables dans le dossier `bin/`.
 Une fois compilé, le programme peut être exécuté depuis le dossier `bin/` :
 
 ```bash
-./bin/decodeur mon_image.jpg
+./bin/jpeg2ppm mon_image.jpg
 ```
 
 Le programme va :
@@ -58,7 +58,7 @@ make
 ./bin/jpeg2ppm images/zig-zag.jpg
 ```
 
-* sortie: 
+sortie: 
 - `zig-zag.ppm`
 
 ---
