@@ -7,7 +7,7 @@ Ce projet implémente un décodeur d’images JPEG en langage C. Il permet d’e
 ## 📁 Structure du projet
 
 ```
-jpeg_github/
+team17/
 │
 ├── bin/                # Fichiers binaires compilés
 ├── images/             # Images JPEG en entrée (pour les tests)
@@ -51,30 +51,14 @@ Le programme va :
 
 ---
 
-## 🧪 Exemples de fichiers générés
+## 🧪 Exemples d'utilisation
 
-Quelques exemples d’images déjà générées par le programme :
+```bash
+make
+./bin/jpeg2ppm images/zig-zag.jpg
+```
 
-- `bisou.pgm`
-- `complexite.pgm`
-- `horizontal.ppm`
-- `shaun_the_sheep.ppm`
-- `vertical.ppm`
+* sortie: 
 - `zig-zag.ppm`
 
-Ces fichiers montrent différentes étapes ou styles de décompression (noir et blanc, couleur, motif de test...).
-
 ---
-
-## 📌 Remarques
-
-- Ce projet est à visée pédagogique, pour comprendre le fonctionnement bas niveau d’un décodeur JPEG.
-- Il ne gère pas toutes les fonctionnalités d’un vrai décodeur (comme libjpeg), mais couvre les bases importantes du standard JPEG.
-- Il peut servir d’introduction à la manipulation des bits, à la compression d’images et au format JPEG.
-
----
-
-## 📚 Références
-
-- Spécification JPEG (ISO/IEC 10918)
-- Ressources en ligne sur le codage Huffman et la transformée en cosinus discrète (DCT)
