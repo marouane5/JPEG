@@ -281,12 +281,12 @@ uint8_t init_component_info(const char *jpeg_path, ComponentInfo comp[3])
 
 
     for (uint8_t i = 0; i < N && i < 3; ++i) {
-        comp[i].id      = i + 1;                     /* 1 = Y, 2 = Cb, 3 = Cr */
-        comp[i].h_samp  = composantes[2*i + 1];      /* H_i du SOF           */
-        comp[i].v_samp  = composantes[2*i];          /* V_i du SOF           */
-        comp[i].qt_idx  = qt_id[i];                  /* table de quantif     */
-        comp[i].dc_idx  = 0;                         /* les valeurs réelles  */
-        comp[i].ac_idx  = 0;                         /* seront fixées après  */
+        comp[i].id      = i + 1;                    
+        comp[i].h_samp  = composantes[2*i + 1];   
+        comp[i].v_samp  = composantes[2*i];         
+        comp[i].qt_idx  = qt_id[i];               
+        comp[i].dc_idx  = 0;                         
+        comp[i].ac_idx  = 0;                        
     }
     return (uint8_t)N;
 }

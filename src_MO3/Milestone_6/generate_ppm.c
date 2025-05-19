@@ -3,8 +3,8 @@
 #include <stdbool.h>
 #include <math.h>
 #include <assert.h>
-#include "idct.c"
 #include "conversion_rgb.c"
+#include "ZigZagI.c"
 
 
 void generate_pgm_V3_troncature(uint16_t* taille, uint16_t* dim_reel , uint8_t**** mcu_blocks, uint16_t N){
