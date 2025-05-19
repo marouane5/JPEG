@@ -9,7 +9,7 @@ Ce projet implémente un décodeur d’images JPEG en langage C. Il permet d’e
 ```
 team17/
 │
-├── bin/                # Fichiers binaires compilés
+├── bin/                # Contient les exécutables
 ├── images/             # Images JPEG en entrée (pour les tests)
 ├── include/            # Fichiers d'en-tête (.h)
 ├── obj/                # Fichiers objets (.o) après compilation
