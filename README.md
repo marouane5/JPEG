@@ -51,7 +51,7 @@ Le programme va :
 
 ---
 
-## 🧪 Exemples d'utilisation
+## 🧪 Exemple d'utilisation
 
 ```bash
 make
