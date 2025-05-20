@@ -80,4 +80,4 @@ sortie:
 ![](dessins/result.png)
 
 *  La structure renvoyée par `extract_huff_idx` 
-![](dessins/huff_idx_table.png)
+![](dessins/huff_idx_tables.png)
