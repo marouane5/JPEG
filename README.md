@@ -63,4 +63,5 @@ sortie:
 
 ---
 ## ▶️ Schémas pour mieux visualiser les structures et tableaux renvoyés par quelques fonctions
-![le tableau renvoyé par la fonction extract_image_info](dessins/infos.png)
+![](dessins/infos.png)
+* Structure extraite par la fonction `extract_image_info`*
