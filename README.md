@@ -14,6 +14,7 @@ team17/
 ├── include/            # Fichiers d'en-tête (.h)
 ├── obj/                # Fichiers objets (.o) après compilation
 ├── src/                # Code source (.c)
+├── dessins/            # Contient des schémas de visualisation utilisees dans le README
 │
 ├── Makefile            # Fichier pour automatiser la compilation
 ├── README.md           # Ce fichier de documentation
