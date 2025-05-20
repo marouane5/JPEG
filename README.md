@@ -63,5 +63,21 @@ sortie:
 
 ---
 ## ▶️ Schémas pour mieux visualiser les structures et tableaux renvoyés par quelques fonctions
+
+* La structure renvoyée par la fonction `extract_image_info`
 ![](dessins/infos.png)
-* Structure extraite par la fonction `extract_image_info`*
+
+* La structure renvoyée par la fonction `extract_quant_tables`
+![](dessins/quant_tables.png)
+
+*  Les structures `table_de_huffman` et `huffman_code`
+![](dessins/structs.png)
+
+*  La structure renvoyée par `extract_huffman_info` 
+![](dessins/huff_info.png)
+
+*  La structure renvoyée par `construction_arbre_huffman` 
+![](dessins/result.png)
+
+*  La structure renvoyée par `extract_huff_idx` 
+![](dessins/huff_idx_table.png)
